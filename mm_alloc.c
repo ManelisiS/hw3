@@ -16,8 +16,10 @@
 #define MM_USE_STUBS
 #define block_size sizeof(s_block_ptr)
 s_block_ptr last=NULL;
+//start=(void*)sbrk(0);
 void* mm_malloc(size_t size)
 {
+  
     void* breakPoint=sbrk(size);
     struct rlimit *resourceLimit=breakPoint;
     if(resourceLimit!=(void*)-1)
@@ -51,28 +53,39 @@ void* mm_malloc(size_t size)
 
 void* mm_realloc(void* ptr, size_t size)
 {
-#ifdef MM_USE_STUBS
+  mm_free(ptr);
+  return mm_malloc(size);
+	  
+  /*#ifdef MM_USE_STUBS
     return realloc(ptr, size);
 #else
 #error Not implemented.
-#endif
+#endif*/
 }
 
 void mm_free(void* ptr)
 {
   s_block_ptr block=get_block(ptr);
-  if (block<=last && block<=sbrk(0))
+  s_block_ptr block2=get_block(sbrk(0));
+  if ( block>block2)
     {
+      //printf("true %d %d.\n", block->prev, block2->prev);
       block->free=1;
     }
 }
 s_block_ptr get_block(void *p)
 {
+  /// printf("hi.\n");
+  if (last==NULL)
+    {
+      printf("it is definetly not there.\n");
+    }
+  else
+    {
   char *tmp;
   tmp=p;
   return(p=tmp -=block_size);
-
-  
+    }
 }
 s_block_ptr extend_heap(s_block_ptr last1,size_t size)
 {
@@ -87,12 +100,11 @@ s_block_ptr extend_heap(s_block_ptr last1,size_t size)
       block->free=0;
       if (last1==NULL)
 	{
-	  
 	  last=block;
 	}
       else if (last1->next==NULL)
 	{
-	  
+	 
 	  last1->next=block;
 	 
 	}
